@@ -37,21 +37,9 @@ module LanguagePack
       end
     end
 
-    # display error message and stop the build process
-    # @param [String] error message
-    def error(message)
-      Kernel.puts " !"
-      message.split("\n").each do |line|
-        Kernel.puts " !     #{line.strip}"
-      end
-      Kernel.puts " !"
-      log "exit", :error => message if respond_to?(:log)
-      exit 1
-    end
-
     def run!(command, options = {})
       result = run(command, options)
-      error("Command: '#{command}' failed unexpectedly:\n#{result}") unless $?.success?
+      raise "Command: '#{command}' failed unexpectedly:\n#{result}" unless $?.success?
       return result
     end
 
