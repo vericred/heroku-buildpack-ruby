@@ -94,6 +94,7 @@ class LanguagePack::Ruby < LanguagePack::Base
         create_database_yml
         install_binaries
         run_assets_precompile_rake_task
+        run_db_migrate_task
       end
       super
     end
@@ -738,6 +739,23 @@ params = CGI.parse(uri.query || "")
   # @return [Boolean] true if it's detected and false if it isn't
   def node_js_installed?
     @node_js_installed ||= run("#{node_bp_bin_path}/node -v") && $?.success?
+  end
+
+  def run_db_migrate_task
+    instrument 'ruby.run_db_migrate_task' do
+      task = rake.task("db:migrate")
+      error('db:migrate is not defined') unless task.is_defined?
+
+      topic 'Migrating the database'
+      task.invoke(env: rake_env)
+
+      if task.success?
+        puts "db:migrate completed (#{"%.2f" % task.time}s)"
+
+      else
+        error(task.output)
+      end
+    end
   end
 
   def run_assets_precompile_rake_task
